@@ -190,9 +190,22 @@
             pointer-events: none;
         }
 
-        .absent-check {
-            margin-top: 5px;
+        .form-check-label {
             font-size: 0.85rem;
+        }
+
+        .check-options {
+            display: flex;
+            gap: 12px;
+        }
+
+        .double-hours-check {
+            position: relative;
+        }
+
+        .double-hours-check .form-check-input:checked {
+            background-color: #4cc9f0;
+            border-color: #4cc9f0;
         }
 
         .results-container {
@@ -295,11 +308,14 @@
     <div id="results-section" class="results-container d-none">
         <h3 class="results-title">OJT Hours Summary</h3>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <p class="mb-1">Total Hours Worked: <span id="total-hours" class="fw-bold"></span></p>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <p class="mb-1">Remaining Hours: <span id="remaining-hours" class="fw-bold"></span></p>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-1">Double Hours Credit: <span id="double-hours" class="fw-bold"></span></p>
             </div>
         </div>
         <div class="progress">
@@ -401,11 +417,17 @@ generateCalendar = (month, year) => {
                             <i class="far fa-clock time-icon"></i>
                         </div>
                     </div>
-                    <div class="absent-check">
+                    <div class="check-options">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="day${dayCount}_absent" id="absent${dayCount}">
                             <label class="form-check-label" for="absent${dayCount}">
                                 Absent
+                            </label>
+                        </div>
+                        <div class="form-check double-hours-check">
+                            <input class="form-check-input" type="checkbox" name="day${dayCount}_double" id="double${dayCount}">
+                            <label class="form-check-label" for="double${dayCount}">
+                                Double Hours
                             </label>
                         </div>
                     </div>
@@ -444,7 +466,8 @@ document.querySelector('#next-month').onclick = () => {
 // Function to calculate total OJT hours based on Time In and Time Out
 function calculateTotalHours() {
     let totalHours = 0;
-    let requiredHours = 486;
+    let doubleHoursCredit = 0;
+    let requiredHours = REQUIRED_HOURS;
 
     // Get all day cells (excluding weekends)
     const dayCells = document.querySelectorAll('.day-cell:not(.weekend)');
@@ -454,13 +477,14 @@ function calculateTotalHours() {
         const dayNumber = dayCell.querySelector('.day-number')?.textContent;
         if (!dayNumber) return;
 
-        // Get time inputs and absent checkbox
+        // Get time inputs and checkboxes
         const timeIn = dayCell.querySelector(`[name="day${dayNumber}_in"]`);
         const timeOut = dayCell.querySelector(`[name="day${dayNumber}_out"]`);
         const absentCheckbox = dayCell.querySelector(`[name="day${dayNumber}_absent"]`);
+        const doubleHoursCheckbox = dayCell.querySelector(`[name="day${dayNumber}_double"]`);
 
         // Skip if any element is not found
-        if (!timeIn || !timeOut || !absentCheckbox) return;
+        if (!timeIn || !timeOut || !absentCheckbox || !doubleHoursCheckbox) return;
 
         // Skip if absent or times not filled
         if (absentCheckbox.checked || !timeIn.value || !timeOut.value) return;
@@ -479,7 +503,15 @@ function calculateTotalHours() {
             // Ensure no negative time is counted
             if (workedMinutes < 0) workedMinutes = 0;
 
-            totalHours += workedMinutes / 60; // Convert to hours
+            let dayHours = workedMinutes / 60; // Convert to hours
+            
+            // Apply double hours if checked
+            if (doubleHoursCheckbox.checked) {
+                doubleHoursCredit += dayHours; // Track the extra hours separately
+                dayHours *= 2; // Double the hours for this day
+            }
+            
+            totalHours += dayHours;
         }
     });
 
@@ -489,6 +521,7 @@ function calculateTotalHours() {
     // Display results in the results section
     document.getElementById('total-hours').textContent = `${totalHours.toFixed(2)} hours`;
     document.getElementById('remaining-hours').textContent = `${remainingHours.toFixed(2)} hours`;
+    document.getElementById('double-hours').textContent = `${doubleHoursCredit.toFixed(2)} hours`;
 
     // Update progress bar
     const progressBar = document.getElementById('progress-bar');
@@ -516,6 +549,22 @@ function calculateTotalHours() {
 document.querySelector('#calculate-btn').addEventListener('click', function(event) {
     event.preventDefault();
     calculateTotalHours();
+});
+
+// Function to disable time inputs when absent is checked
+document.addEventListener('change', function(event) {
+    if (event.target.name && event.target.name.includes('_absent')) {
+        const dayNumber = event.target.name.split('_')[0].replace('day', '');
+        const timeIn = document.querySelector(`[name="day${dayNumber}_in"]`);
+        const timeOut = document.querySelector(`[name="day${dayNumber}_out"]`);
+        const doubleHoursCheckbox = document.querySelector(`[name="day${dayNumber}_double"]`);
+        
+        if (timeIn && timeOut && doubleHoursCheckbox) {
+            timeIn.disabled = event.target.checked;
+            timeOut.disabled = event.target.checked;
+            doubleHoursCheckbox.disabled = event.target.checked;
+        }
+    }
 });
 
 // Initialize the calendar with May 2025
