@@ -4,236 +4,319 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OJT Calendar Calculator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f4f6f9;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    height: 100vh;
-    margin: 0;
-}
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --weekend-color: #ff758f;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
 
-.container {
-    background-color: #ffffff;
-    width: 100%;
-    max-width: 1200px;
-    padding: 20px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-    position: relative; /* Set positioning context */
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
 
-h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 2rem;
-    color: #343a40;
-    margin-top: 5px; /* Adjust top margin to move it up */
-}
+        .container {
+            max-width: 1200px;
+            padding: 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
 
-.month-year {
-    text-align: center;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-}
+        .app-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
 
-button {
-    padding: 10px 20px;
-    border-radius: 50px;
-    border: 1px solid #007bff;
-    background-color: #007bff;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-}
+        .app-subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
 
-button:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
-}
+        .month-navigator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
+        }
 
-button:focus {
-    outline: none;
-}
+        .month-year-display {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+        }
 
-.calendar-header {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7 columns for days */
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 10px;
-    padding: 5px 0;
-    color: #007bff;
-}
+        .btn-nav {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
 
-.calendar-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7 columns for the days */
-    gap: 15px; /* Added space between the cells */
-    text-align: center;
-    grid-template-rows: repeat(5, 1fr); /* 5 rows for days */
-    margin-top: 10px;
-    height: auto; /* Adjusted to auto to fit all days */
-    max-height: none; /* Allow the grid to take up all the space */
-}
+        .btn-nav:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
 
-.calendar-day {
-    padding: 15px;  /* Increased padding for bigger grid cells */
-    border: 1px solid #ddd;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;  /* Slightly larger font for better readability */
-}
+        .btn-calculate {
+            background-color: var(--accent-color);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
 
-.calendar-day:hover {
-    background-color: #e2e6ea;
-}
+        .btn-calculate:hover {
+            background-color: #39b4db;
+            transform: translateY(-2px);
+        }
 
-.calendar-day.curr-date {
-    background-color: #007bff;
-    color: white;
-}
+        .calendar-header {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
 
-/* Disabled Days - Saturdays and Sundays */
-.calendar-day.disabled {
-    background-color: #f9f9f9; /* Keep background color as it is */
-    border-color: red; /* Set the border to red for disabled days */
-    pointer-events: none; /* Disable all interactions */
-}
+        .calendar-header .col {
+            padding: 15px 0;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-.calendar-day.disabled input,
-.calendar-day.disabled input[type="checkbox"],
-.calendar-day.disabled .absent-label {
-    display: none; /* Hide the input, checkbox, and absent text for disabled days */
-}
+        .calendar-header .col:last-child {
+            border-right: none;
+        }
 
+        .calendar-row {
+            border-bottom: 1px solid #e9ecef;
+        }
 
-.form-control {
-    width: 80%;
-    padding: 6px;
-    margin-bottom: 5px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-}
+        .calendar-row:last-child {
+            border-bottom: none;
+        }
 
-.btn-custom {
-    background-color: #007bff;
-    color: white;
-    border-radius: 10px;
-    font-size: 1.1rem;
-    font-weight: 500;
-    padding: 12px;
-    margin-top: 20px;
-}
+        .day-cell {
+            border-right: 1px solid #e9ecef;
+            padding: 10px;
+            min-height: 150px;
+        }
 
-.btn-custom:hover {
-    background-color: #0056b3;
-}
+        .day-cell:last-child {
+            border-right: none;
+        }
 
-.result {
-    background-color: #e9ecef;
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 30px;
-    width: 100%;
-}
+        .day-number {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
 
-.result h3 {
-    font-size: 1.4rem;
-    color: #333;
-}
+        .weekend {
+            background-color: #f8f9fa;
+            position: relative;
+        }
 
-#calculate-btn {
-    position: absolute;
-    top: 100px;
-    right: 20px;
-}
+        .weekend::after {
+            content: "Weekend";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--weekend-color);
+            font-weight: 600;
+            font-size: 1rem;
+        }
 
-@media (max-width: 768px) {
-    .calendar-days {
-        grid-template-columns: repeat(4, 1fr); /* 4 columns for smaller screens */
-    }
+        .weekend .time-controls {
+            display: none;
+        }
 
-    .calendar-day {
-        height: auto;
-        width: auto;
-    }
+        .time-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 2px;
+        }
 
-    .form-control {
-        font-size: 1rem;
-    }
+        .time-input-group {
+            position: relative;
+            margin-bottom: 10px;
+        }
 
-    .result {
-        position: static;
-        margin-top: 20px;
-        width: auto;
-    }
+        .time-input {
+            width: 100%;
+            padding-right: 30px;
+            font-size: 0.9rem;
+        }
 
-    #calculate-btn {
-        position: static;
-        margin-top: 20px;
-    }
-}
+        .time-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            pointer-events: none;
+        }
 
+        .absent-check {
+            margin-top: 5px;
+            font-size: 0.85rem;
+        }
 
+        .results-container {
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: var(--box-shadow);
+        }
 
+        .results-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
 
+        .progress {
+            height: 20px;
+            border-radius: 50px;
+            margin-top: 15px;
+            background-color: #e9ecef;
+        }
 
+        .progress-bar {
+            border-radius: 50px;
+        }
+
+        @media (max-width: 991.98px) {
+            .calendar-row {
+                margin-bottom: 0;
+            }
+            
+            .day-cell {
+                border-bottom: 1px solid #e9ecef;
+                border-right: none;
+                min-height: auto;
+                padding-bottom: 15px;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .app-title {
+                font-size: 2rem;
+            }
+            
+            .month-year-display {
+                font-size: 1.3rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>OJT Calendar Calculator</h1>
+    <h1 class="app-title">OJT Calendar Calculator</h1>
+    <p class="app-subtitle">Track your on-the-job training hours with ease</p>
 
-    <div class="month-year">
-        <button id="prev-month">Prev Month</button>
-        <span id="month-picker">May</span>
-        <span id="year-display">2025</span>
-        <button id="next-month">Next Month</button>
-        <button id="calculate-btn" >Calculate Total Hours</button>
-    </div>
-    
-
-    <!-- Calendar Header with Days of the Week -->
- 
-
-    <!-- Calendar Grid with Days -->
-    <div id="calendar">
-    <div class="calendar-header">
-        <div>Sun</div>
-        <div>Mon</div>
-        <div>Tue</div>
-        <div>Wed</div>
-        <div>Thu</div>
-        <div>Fri</div>
-        <div>Sat</div>
-    </div>
-        <div class="calendar-days"></div>
+    <div class="month-navigator">
+        <button id="prev-month" class="btn btn-nav">
+            <i class="fas fa-chevron-left"></i>
+            Previous
+        </button>
+        <div class="month-year-display">
+            <span id="month-display">May</span> <span id="year-display">2025</span>
+        </div>
+        <button id="next-month" class="btn btn-nav">
+            Next
+            <i class="fas fa-chevron-right"></i>
+        </button>
     </div>
 
-    
+    <div class="d-flex justify-content-end mb-3">
+        <button id="calculate-btn" class="btn btn-calculate">
+            <i class="fas fa-calculator"></i>
+            Calculate Hours
+        </button>
+    </div>
 
-    
+    <div class="calendar-container">
+        <!-- Calendar Header with Days of the Week -->
+        <div class="row calendar-header">
+            <div class="col">Sun</div>
+            <div class="col">Mon</div>
+            <div class="col">Tue</div>
+            <div class="col">Wed</div>
+            <div class="col">Thu</div>
+            <div class="col">Fri</div>
+            <div class="col">Sat</div>
+        </div>
+        
+        <!-- Calendar Days - Will be filled by JavaScript -->
+        <div id="calendar-grid"></div>
+    </div>
+
+    <!-- Results Section (Initially Hidden) -->
+    <div id="results-section" class="results-container d-none">
+        <h3 class="results-title">OJT Hours Summary</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1">Total Hours Worked: <span id="total-hours" class="fw-bold"></span></p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-1">Remaining Hours: <span id="remaining-hours" class="fw-bold"></span></p>
+            </div>
+        </div>
+        <div class="progress">
+            <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
 </div>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
 <script>
 // Month Names
 const month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Required OJT hours
+const REQUIRED_HOURS = 486;
 
 // Leap year calculation
 isLeapYear = (year) => {
@@ -245,108 +328,190 @@ getFebDays = (year) => {
     return isLeapYear(year) ? 29 : 28;
 }
 
+// Function to generate calendar grid
 generateCalendar = (month, year) => {
-    let calendar_days = document.querySelector('.calendar-days');
-    let month_picker = document.querySelector('#month-picker');
-    let year_display = document.querySelector('#year-display');
+    const calendarGrid = document.getElementById('calendar-grid');
+    const monthDisplay = document.getElementById('month-display');
+    const yearDisplay = document.getElementById('year-display');
 
-    let days_of_month = [31, getFebDays(year), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-    calendar_days.innerHTML = ''; // Clear the calendar before updating
-
-    let currDate = new Date();
-    if (!month) month = currDate.getMonth();
-    if (!year) year = currDate.getFullYear();
-
-    let curr_month = `${month_names[month]}`;
-    month_picker.innerHTML = curr_month;
-    year_display.innerHTML = year; // Update the year display
-
-    let first_day = new Date(year, month, 1); // First day of the month
-
-    // Loop to generate the days of the month
-    for (let i = 0; i < days_of_month[month] + first_day.getDay(); i++) {
-        let day = document.createElement('div');
-        if (i >= first_day.getDay()) {
-            let dayNumber = i - first_day.getDay() + 1;
-            day.classList.add('calendar-day');
-            day.innerHTML = dayNumber;
-
-            // Add time inputs and checkbox for absent
-            day.innerHTML += `
-                <input type="time" class="form-control" name="day${dayNumber}_in" placeholder="Time In">
-                <input type="time" class="form-control" name="day${dayNumber}_out" placeholder="Time Out">
-                <label class="absent-label">
-                    <input type="checkbox" name="day${dayNumber}_absent"> Absent
-                </label>
-            `;
-
-            // Disable Saturdays and Sundays
-            if (new Date(year, month, dayNumber).getDay() === 0 || new Date(year, month, dayNumber).getDay() === 6) {
-                day.classList.add('disabled');
+    // Days in each month (accounting for leap year in February)
+    const days_of_month = [31, getFebDays(year), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    
+    // Clear the calendar before updating
+    calendarGrid.innerHTML = '';
+    
+    // Update month and year display
+    monthDisplay.textContent = month_names[month];
+    yearDisplay.textContent = year;
+    
+    // Get the first day of the month (0 = Sunday, 1 = Monday, etc.)
+    const firstDay = new Date(year, month, 1).getDay();
+    
+    // Calculate total days needed (days in month + empty cells for first week)
+    const totalDays = days_of_month[month] + firstDay;
+    
+    // Calculate number of rows needed (7 cells per row)
+    const rows = Math.ceil(totalDays / 7);
+    
+    // Create the calendar grid rows
+    let dayCount = 1;
+    for (let row = 0; row < rows; row++) {
+        // Create row
+        const weekRow = document.createElement('div');
+        weekRow.className = 'row calendar-row';
+        
+        // Create 7 cells for each day of the week
+        for (let col = 0; col < 7; col++) {
+            const dayCell = document.createElement('div');
+            dayCell.className = 'col day-cell';
+            
+            // First row may have empty cells before the 1st day of the month
+            if (row === 0 && col < firstDay) {
+                weekRow.appendChild(dayCell);
+                continue;
             }
+            
+            // Stop once we've reached the end of the month
+            if (dayCount > days_of_month[month]) {
+                weekRow.appendChild(dayCell);
+                continue;
+            }
+            
+            // Check if this is a weekend (Saturday or Sunday)
+            const isWeekend = col === 0 || col === 6;
+            if (isWeekend) {
+                dayCell.classList.add('weekend');
+            }
+            
+            // Create the day cell content
+            dayCell.innerHTML = `
+                <div class="day-number">${dayCount}</div>
+                <div class="time-controls">
+                    <div>
+                        <label class="time-label">Time In:</label>
+                        <div class="time-input-group">
+                            <input type="time" class="form-control time-input" name="day${dayCount}_in">
+                            <i class="far fa-clock time-icon"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="time-label">Time Out:</label>
+                        <div class="time-input-group">
+                            <input type="time" class="form-control time-input" name="day${dayCount}_out">
+                            <i class="far fa-clock time-icon"></i>
+                        </div>
+                    </div>
+                    <div class="absent-check">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="day${dayCount}_absent" id="absent${dayCount}">
+                            <label class="form-check-label" for="absent${dayCount}">
+                                Absent
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            weekRow.appendChild(dayCell);
+            dayCount++;
         }
-        calendar_days.appendChild(day);
+        
+        calendarGrid.appendChild(weekRow);
     }
 };
 
-
-
+// Set initial values for current month and year
+let curr_month = 4; // May (0-indexed)
+let curr_year = 2025;
 
 // Function to update the calendar when month changes
 document.querySelector('#prev-month').onclick = () => {
-    curr_month.value = (curr_month.value === 0) ? 11 : curr_month.value - 1; // Go to previous month
-    generateCalendar(curr_month.value, curr_year.value);
+    curr_month = (curr_month === 0) ? 11 : curr_month - 1; // Go to previous month
+    if (curr_month === 11) {
+        curr_year -= 1; // Go back one year if going from January to December
+    }
+    generateCalendar(curr_month, curr_year);
 };
 
 document.querySelector('#next-month').onclick = () => {
-    curr_month.value = (curr_month.value === 11) ? 0 : curr_month.value + 1; // Go to next month
-    generateCalendar(curr_month.value, curr_year.value);
+    curr_month = (curr_month === 11) ? 0 : curr_month + 1; // Go to next month
+    if (curr_month === 0) {
+        curr_year += 1; // Go forward one year if going from December to January
+    }
+    generateCalendar(curr_month, curr_year);
 };
-
-// Initialize the calendar
-let currDate = new Date();
-let curr_month = {value: currDate.getMonth()};
-let curr_year = {value: 2025}; // Set the year to 2025
-generateCalendar(curr_month.value, curr_year.value);
 
 // Function to calculate total OJT hours based on Time In and Time Out
 function calculateTotalHours() {
     let totalHours = 0;
-    let requiredHours = 486;
-
-    // Iterate through all days and calculate the total hours worked
-    document.querySelectorAll('.calendar-day').forEach((dayDiv, index) => {
-        let timeIn = dayDiv.querySelector(`[name="day${index + 1}_in"]`);
-        let timeOut = dayDiv.querySelector(`[name="day${index + 1}_out"]`);
-        let absent = dayDiv.querySelector(`[name="day${index + 1}_absent"]`).checked;
-
-        // Skip calculation if Time In or Time Out are empty or if the day is marked as absent
-        if (timeIn && timeOut && timeIn.value && timeOut.value && !absent) {
-            let inTime = new Date(`1970-01-01T${timeIn.value}:00Z`);
-            let outTime = new Date(`1970-01-01T${timeOut.value}:00Z`);
-
-            // Check if the time values are valid
-            if (isNaN(inTime) || isNaN(outTime)) {
-                return; // Skip invalid time values
-            }
-
-            let workedMinutes = (outTime - inTime) / 60000; // Convert to minutes
+    
+    // Get all day cells (excluding weekends)
+    const dayCells = document.querySelectorAll('.day-cell:not(.weekend)');
+    
+    dayCells.forEach(dayCell => {
+        // Get the day number
+        const dayNumber = dayCell.querySelector('.day-number')?.textContent;
+        if (!dayNumber) return;
+        
+        // Get time inputs and absent checkbox
+        const timeIn = dayCell.querySelector(`[name="day${dayNumber}_in"]`);
+        const timeOut = dayCell.querySelector(`[name="day${dayNumber}_out"]`);
+        const absentCheckbox = dayCell.querySelector(`[name="day${dayNumber}_absent"]`);
+        
+        // Skip if any element is not found
+        if (!timeIn || !timeOut || !absentCheckbox) return;
+        
+        // Skip if absent or times not filled
+        if (absentCheckbox.checked || !timeIn.value || !timeOut.value) return;
+        
+        // Calculate hours
+        const inTime = new Date(`1970-01-01T${timeIn.value}:00Z`);
+        const outTime = new Date(`1970-01-01T${timeOut.value}:00Z`);
+        
+        // Check for valid times
+        if (!isNaN(inTime) && !isNaN(outTime)) {
+            const workedMinutes = (outTime - inTime) / 60000; // Convert to minutes
             totalHours += workedMinutes / 60; // Convert to hours
         }
     });
-
-    let remainingHours = requiredHours - totalHours;
-
-    // Show the result in an alert
-    alert(`Total Hours Worked: ${totalHours.toFixed(2)} hours\nRemaining Hours to Reach 486: ${remainingHours.toFixed(2)} hours`);
+    
+    const remainingHours = REQUIRED_HOURS - totalHours;
+    const progressPercentage = Math.min((totalHours / REQUIRED_HOURS) * 100, 100);
+    
+    // Display results in the results section
+    document.getElementById('total-hours').textContent = `${totalHours.toFixed(2)} hours`;
+    document.getElementById('remaining-hours').textContent = `${remainingHours.toFixed(2)} hours`;
+    
+    // Update progress bar
+    const progressBar = document.getElementById('progress-bar');
+    progressBar.style.width = `${progressPercentage}%`;
+    progressBar.setAttribute('aria-valuenow', progressPercentage);
+    progressBar.textContent = `${progressPercentage.toFixed(1)}%`;
+    
+    // Change progress bar color based on percentage
+    if (progressPercentage < 33) {
+        progressBar.classList.remove('bg-warning', 'bg-success');
+        progressBar.classList.add('bg-danger');
+    } else if (progressPercentage < 66) {
+        progressBar.classList.remove('bg-danger', 'bg-success');
+        progressBar.classList.add('bg-warning');
+    } else {
+        progressBar.classList.remove('bg-danger', 'bg-warning');
+        progressBar.classList.add('bg-success');
+    }
+    
+    // Show results section
+    document.getElementById('results-section').classList.remove('d-none');
 }
 
 // Event listener for calculate button
 document.querySelector('#calculate-btn').addEventListener('click', function(event) {
-    event.preventDefault(); // Prevent form from submitting and refreshing the page
-    calculateTotalHours(); // Calculate total hours worked
+    event.preventDefault();
+    calculateTotalHours();
 });
+
+// Initialize the calendar with May 2025
+generateCalendar(curr_month, curr_year);
 </script>
 
 </body>
