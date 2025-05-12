@@ -444,50 +444,58 @@ document.querySelector('#next-month').onclick = () => {
 // Function to calculate total OJT hours based on Time In and Time Out
 function calculateTotalHours() {
     let totalHours = 0;
-    
+    let requiredHours = 486;
+
     // Get all day cells (excluding weekends)
     const dayCells = document.querySelectorAll('.day-cell:not(.weekend)');
-    
+
     dayCells.forEach(dayCell => {
         // Get the day number
         const dayNumber = dayCell.querySelector('.day-number')?.textContent;
         if (!dayNumber) return;
-        
+
         // Get time inputs and absent checkbox
         const timeIn = dayCell.querySelector(`[name="day${dayNumber}_in"]`);
         const timeOut = dayCell.querySelector(`[name="day${dayNumber}_out"]`);
         const absentCheckbox = dayCell.querySelector(`[name="day${dayNumber}_absent"]`);
-        
+
         // Skip if any element is not found
         if (!timeIn || !timeOut || !absentCheckbox) return;
-        
+
         // Skip if absent or times not filled
         if (absentCheckbox.checked || !timeIn.value || !timeOut.value) return;
-        
+
         // Calculate hours
         const inTime = new Date(`1970-01-01T${timeIn.value}:00Z`);
         const outTime = new Date(`1970-01-01T${timeOut.value}:00Z`);
-        
+
         // Check for valid times
         if (!isNaN(inTime) && !isNaN(outTime)) {
-            const workedMinutes = (outTime - inTime) / 60000; // Convert to minutes
+            let workedMinutes = (outTime - inTime) / 60000; // Convert to minutes
+            
+            // Subtract 1 hour (60 minutes) for lunch time
+            workedMinutes -= 60; // Subtract 60 minutes for lunch break
+            
+            // Ensure no negative time is counted
+            if (workedMinutes < 0) workedMinutes = 0;
+
             totalHours += workedMinutes / 60; // Convert to hours
         }
     });
-    
-    const remainingHours = REQUIRED_HOURS - totalHours;
-    const progressPercentage = Math.min((totalHours / REQUIRED_HOURS) * 100, 100);
-    
+
+    const remainingHours = requiredHours - totalHours;
+    const progressPercentage = Math.min((totalHours / requiredHours) * 100, 100);
+
     // Display results in the results section
     document.getElementById('total-hours').textContent = `${totalHours.toFixed(2)} hours`;
     document.getElementById('remaining-hours').textContent = `${remainingHours.toFixed(2)} hours`;
-    
+
     // Update progress bar
     const progressBar = document.getElementById('progress-bar');
     progressBar.style.width = `${progressPercentage}%`;
     progressBar.setAttribute('aria-valuenow', progressPercentage);
     progressBar.textContent = `${progressPercentage.toFixed(1)}%`;
-    
+
     // Change progress bar color based on percentage
     if (progressPercentage < 33) {
         progressBar.classList.remove('bg-warning', 'bg-success');
@@ -499,7 +507,7 @@ function calculateTotalHours() {
         progressBar.classList.remove('bg-danger', 'bg-warning');
         progressBar.classList.add('bg-success');
     }
-    
+
     // Show results section
     document.getElementById('results-section').classList.remove('d-none');
 }
