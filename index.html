@@ -131,7 +131,7 @@
         .day-cell {
             border-right: 1px solid #e9ecef;
             padding: 10px;
-            min-height: 150px;
+            min-height: 220px;
         }
 
         .day-cell:last-child {
@@ -233,6 +233,20 @@
             border-radius: 50px;
         }
 
+        .time-section {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+
+        .time-section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
         @media (max-width: 991.98px) {
             .calendar-row {
                 margin-bottom: 0;
@@ -265,7 +279,7 @@
 
 <div class="container">
     <h1 class="app-title">OJT Calendar Calculator</h1>
-    <p class="app-subtitle">Track your on-the-job training hours with ease</p>
+    <p class="app-subtitle">Track your on-the-job training hours with separate morning and afternoon sessions</p>
 
     <div class="month-navigator">
         <button id="prev-month" class="btn btn-nav">
@@ -399,24 +413,46 @@ generateCalendar = (month, year) => {
                 dayCell.classList.add('weekend');
             }
             
-            // Create the day cell content
+            // Create the day cell content with morning and afternoon sections
             dayCell.innerHTML = `
                 <div class="day-number">${dayCount}</div>
                 <div class="time-controls">
-                    <div>
-                        <label class="time-label">Time In:</label>
-                        <div class="time-input-group">
-                            <input type="time" class="form-control time-input" name="day${dayCount}_in">
-                            <i class="far fa-clock time-icon"></i>
+                    <div class="time-section">
+                        <div class="time-section-title">Morning</div>
+                        <div>
+                            <label class="time-label">Time In:</label>
+                            <div class="time-input-group">
+                                <input type="time" class="form-control time-input" name="day${dayCount}_morning_in">
+                                <i class="far fa-clock time-icon"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="time-label">Time Out:</label>
+                            <div class="time-input-group">
+                                <input type="time" class="form-control time-input" name="day${dayCount}_morning_out">
+                                <i class="far fa-clock time-icon"></i>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <label class="time-label">Time Out:</label>
-                        <div class="time-input-group">
-                            <input type="time" class="form-control time-input" name="day${dayCount}_out">
-                            <i class="far fa-clock time-icon"></i>
+                    
+                    <div class="time-section">
+                        <div class="time-section-title">Afternoon</div>
+                        <div>
+                            <label class="time-label">Time In:</label>
+                            <div class="time-input-group">
+                                <input type="time" class="form-control time-input" name="day${dayCount}_afternoon_in">
+                                <i class="far fa-clock time-icon"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="time-label">Time Out:</label>
+                            <div class="time-input-group">
+                                <input type="time" class="form-control time-input" name="day${dayCount}_afternoon_out">
+                                <i class="far fa-clock time-icon"></i>
+                            </div>
                         </div>
                     </div>
+                    
                     <div class="check-options">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="day${dayCount}_absent" id="absent${dayCount}">
@@ -463,6 +499,26 @@ document.querySelector('#next-month').onclick = () => {
     generateCalendar(curr_month, curr_year);
 };
 
+// Function to calculate hours between two time strings
+function calculateHoursBetween(timeIn, timeOut) {
+    if (!timeIn || !timeOut) return 0;
+    
+    const inTime = new Date(`1970-01-01T${timeIn}:00Z`);
+    const outTime = new Date(`1970-01-01T${timeOut}:00Z`);
+    
+    // Check for valid times
+    if (!isNaN(inTime) && !isNaN(outTime)) {
+        let workedMinutes = (outTime - inTime) / 60000; // Convert to minutes
+        
+        // Ensure no negative time is counted
+        if (workedMinutes < 0) workedMinutes = 0;
+        
+        return workedMinutes / 60; // Convert to hours
+    }
+    
+    return 0;
+}
+
 // Function to calculate total OJT hours based on Time In and Time Out
 function calculateTotalHours() {
     let totalHours = 0;
@@ -477,42 +533,39 @@ function calculateTotalHours() {
         const dayNumber = dayCell.querySelector('.day-number')?.textContent;
         if (!dayNumber) return;
 
-        // Get time inputs and checkboxes
-        const timeIn = dayCell.querySelector(`[name="day${dayNumber}_in"]`);
-        const timeOut = dayCell.querySelector(`[name="day${dayNumber}_out"]`);
+        // Get morning and afternoon time inputs and checkboxes
+        const morningTimeIn = dayCell.querySelector(`[name="day${dayNumber}_morning_in"]`);
+        const morningTimeOut = dayCell.querySelector(`[name="day${dayNumber}_morning_out"]`);
+        const afternoonTimeIn = dayCell.querySelector(`[name="day${dayNumber}_afternoon_in"]`);
+        const afternoonTimeOut = dayCell.querySelector(`[name="day${dayNumber}_afternoon_out"]`);
         const absentCheckbox = dayCell.querySelector(`[name="day${dayNumber}_absent"]`);
         const doubleHoursCheckbox = dayCell.querySelector(`[name="day${dayNumber}_double"]`);
 
-        // Skip if any element is not found
-        if (!timeIn || !timeOut || !absentCheckbox || !doubleHoursCheckbox) return;
+        // Skip if absent is checked
+        if (absentCheckbox.checked) return;
 
-        // Skip if absent or times not filled
-        if (absentCheckbox.checked || !timeIn.value || !timeOut.value) return;
-
-        // Calculate hours
-        const inTime = new Date(`1970-01-01T${timeIn.value}:00Z`);
-        const outTime = new Date(`1970-01-01T${timeOut.value}:00Z`);
-
-        // Check for valid times
-        if (!isNaN(inTime) && !isNaN(outTime)) {
-            let workedMinutes = (outTime - inTime) / 60000; // Convert to minutes
-            
-            // Subtract 1 hour (60 minutes) for lunch time
-            workedMinutes -= 60; // Subtract 60 minutes for lunch break
-            
-            // Ensure no negative time is counted
-            if (workedMinutes < 0) workedMinutes = 0;
-
-            let dayHours = workedMinutes / 60; // Convert to hours
-            
-            // Apply double hours if checked
-            if (doubleHoursCheckbox.checked) {
-                doubleHoursCredit += dayHours; // Track the extra hours separately
-                dayHours *= 2; // Double the hours for this day
-            }
-            
-            totalHours += dayHours;
+        // Calculate morning hours
+        let morningHours = calculateHoursBetween(
+            morningTimeIn?.value, 
+            morningTimeOut?.value
+        );
+        
+        // Calculate afternoon hours
+        let afternoonHours = calculateHoursBetween(
+            afternoonTimeIn?.value, 
+            afternoonTimeOut?.value
+        );
+        
+        // Calculate total day hours
+        let dayHours = morningHours + afternoonHours;
+        
+        // Apply double hours if checked
+        if (doubleHoursCheckbox.checked && dayHours > 0) {
+            doubleHoursCredit += dayHours; // Track the extra hours separately
+            dayHours *= 2; // Double the hours for this day
         }
+        
+        totalHours += dayHours;
     });
 
     const remainingHours = requiredHours - totalHours;
@@ -555,14 +608,19 @@ document.querySelector('#calculate-btn').addEventListener('click', function(even
 document.addEventListener('change', function(event) {
     if (event.target.name && event.target.name.includes('_absent')) {
         const dayNumber = event.target.name.split('_')[0].replace('day', '');
-        const timeIn = document.querySelector(`[name="day${dayNumber}_in"]`);
-        const timeOut = document.querySelector(`[name="day${dayNumber}_out"]`);
+        const morningTimeIn = document.querySelector(`[name="day${dayNumber}_morning_in"]`);
+        const morningTimeOut = document.querySelector(`[name="day${dayNumber}_morning_out"]`);
+        const afternoonTimeIn = document.querySelector(`[name="day${dayNumber}_afternoon_in"]`);
+        const afternoonTimeOut = document.querySelector(`[name="day${dayNumber}_afternoon_out"]`);
         const doubleHoursCheckbox = document.querySelector(`[name="day${dayNumber}_double"]`);
         
-        if (timeIn && timeOut && doubleHoursCheckbox) {
-            timeIn.disabled = event.target.checked;
-            timeOut.disabled = event.target.checked;
-            doubleHoursCheckbox.disabled = event.target.checked;
+        if (morningTimeIn && morningTimeOut && afternoonTimeIn && afternoonTimeOut && doubleHoursCheckbox) {
+            const disabled = event.target.checked;
+            morningTimeIn.disabled = disabled;
+            morningTimeOut.disabled = disabled;
+            afternoonTimeIn.disabled = disabled;
+            afternoonTimeOut.disabled = disabled;
+            doubleHoursCheckbox.disabled = disabled;
         }
     }
 });
