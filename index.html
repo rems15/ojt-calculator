@@ -247,6 +247,12 @@
             margin-bottom: 5px;
         }
 
+        /* Style for zero time inputs */
+        .time-input.zero-time {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+
         @media (max-width: 991.98px) {
             .calendar-row {
                 margin-bottom: 0;
@@ -422,14 +428,14 @@ generateCalendar = (month, year) => {
                         <div>
                             <label class="time-label">Time In:</label>
                             <div class="time-input-group">
-                                <input type="time" class="form-control time-input" name="day${dayCount}_morning_in" value="08:00">
+                                <input type="time" class="form-control time-input" name="day${dayCount}_morning_in" value="">
                                 <i class="far fa-clock time-icon"></i>
                             </div>
                         </div>
                         <div>
                             <label class="time-label">Time Out:</label>
                             <div class="time-input-group">
-                                <input type="time" class="form-control time-input" name="day${dayCount}_morning_out" value="12:00">
+                                <input type="time" class="form-control time-input" name="day${dayCount}_morning_out" value="">
                                 <i class="far fa-clock time-icon"></i>
                             </div>
                         </div>
@@ -440,14 +446,14 @@ generateCalendar = (month, year) => {
                         <div>
                             <label class="time-label">Time In:</label>
                             <div class="time-input-group">
-                                <input type="time" class="form-control time-input" name="day${dayCount}_afternoon_in" value="13:00">
+                                <input type="time" class="form-control time-input" name="day${dayCount}_afternoon_in" value="">
                                 <i class="far fa-clock time-icon"></i>
                             </div>
                         </div>
                         <div>
                             <label class="time-label">Time Out:</label>
                             <div class="time-input-group">
-                                <input type="time" class="form-control time-input" name="day${dayCount}_afternoon_out" value="17:00">
+                                <input type="time" class="form-control time-input" name="day${dayCount}_afternoon_out" value="">
                                 <i class="far fa-clock time-icon"></i>
                             </div>
                         </div>
@@ -502,6 +508,9 @@ document.querySelector('#next-month').onclick = () => {
 // Function to calculate hours between two time strings
 function calculateHoursBetween(timeIn, timeOut) {
     if (!timeIn || !timeOut) return 0;
+    
+    // Handle 00:00 as no work time
+    if (timeIn === '00:00' || timeOut === '00:00') return 0;
     
     const inTime = new Date(`1970-01-01T${timeIn}:00Z`);
     const outTime = new Date(`1970-01-01T${timeOut}:00Z`);
@@ -604,8 +613,18 @@ document.querySelector('#calculate-btn').addEventListener('click', function(even
     calculateTotalHours();
 });
 
+// Function to handle time input changes and visual feedback
+function handleTimeInputChange(input) {
+    if (input.value === '00:00') {
+        input.classList.add('zero-time');
+    } else {
+        input.classList.remove('zero-time');
+    }
+}
+
 // Function to disable time inputs when absent is checked
 document.addEventListener('change', function(event) {
+    // Handle absent checkbox changes
     if (event.target.name && event.target.name.includes('_absent')) {
         const dayNumber = event.target.name.split('_')[0].replace('day', '');
         const morningTimeIn = document.querySelector(`[name="day${dayNumber}_morning_in"]`);
@@ -623,6 +642,22 @@ document.addEventListener('change', function(event) {
             doubleHoursCheckbox.disabled = disabled;
         }
     }
+    
+    // Handle time input changes for visual feedback
+    if (event.target.type === 'time') {
+        handleTimeInputChange(event.target);
+    }
+});
+
+// Add event listener for time inputs to handle visual feedback on initial load
+document.addEventListener('DOMContentLoaded', function() {
+    // This will run after the calendar is generated
+    setTimeout(() => {
+        const timeInputs = document.querySelectorAll('.time-input');
+        timeInputs.forEach(input => {
+            handleTimeInputChange(input);
+        });
+    }, 100);
 });
 
 // Initialize the calendar with May 2025
